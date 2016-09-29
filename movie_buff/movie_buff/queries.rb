@@ -22,25 +22,47 @@
 
 
 def movie_names_before_1940
+  Movie.select(:id, :title, :yr).where('yr < 1940')
   # Find all the movies made before 1940. Show the id, title, and year.
 
 end
 
 def eighties_b_movies
-	# List all the movies from 1980-1989 with scores falling between 3 and 5 (inclusive). Show the id, title, year, and score.
+  # yr_limit ='yr>=1980 AND yr<=1989'
+  Movie.select(:id, :title, :yr, :score).where('score>=3 AND score<=5
+   AND yr>=1980 AND yr<=1989')
+	# List all the movies from 1980-1989 with scores falling between 3 and
+  # 5 (inclusive). Show the id, title, year, and score.
 
 end
 
 def vanity_projects
-  # List the title of all movies in which the director also appeared as the starring actor. Show the movie id and title and director's name.
-
+  # List the title of all movies in which the director also appeared as the starring actor.
+  # Show the movie id and title and director's name.
+  Movie.select(:id, :title, :name).joins(:actors).where('(movies.director_id = castings.actor_id) AND castings.ord = 1')
   # Note: Directors appear in the 'actors' table.
-  
+
 end
 
 def starring(whazzername)
 	# Find the movies with an actor who had a name like `whazzername`.
 	# A name is like whazzername if the actor's name contains all of the letters in whazzername, ignoring case, in order.
+  all_actors = Movie.includes(:actors)
+
+  wanted_actors = []
+  all_actors.each do |actor|
+    actor_name = actor
+    whazzername.chars.each do |letter|
+      break if !actor_name.include?(letter)
+      d = actor_name.index(letter)
+      actor_name.slice!(0, 1+d)
+    end
+    wanted_actors << actor if actor_name.length == 0
+  end
+
+  wanted_actor_str = wanted_actors.join(", ")
+
+  Movie.select('*').joins(:actors).where("actors.name IN #{wanted_actor_str}")
 
 	# ex. "Sylvester Stallone" is like "sylvester" and "lester stone" but not like "stallone sylvester" or "zylvester ztallone"
 
